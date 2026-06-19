@@ -1,0 +1,6 @@
+[submodule "vendor/lua"]
+	path = vendor/lua
+	url = https://github.com/lua/lua.git
+[submodule "vendor/rgfw"]
+	path = vendor/rgfw
+	url = https://github.com/ColleagueRiley/RGFW.git
