@@ -22,26 +22,12 @@ CFLAGS += -std=c99 -O2
 
 # vendor pathing
 VENDOR_LUA_PREFIX  := ../vendor/lua/
-VENDOR_RGFW_PREFIX := ../vendor/rgfw/
 ifeq ($(OS),Windows_NT)
 VENDOR_LUA_PREFIX  := $(subst /,\,$(VENDOR_LUA_PREFIX))
-VENDOR_RGFW_PREFIX := $(subst /,\,$(VENDOR_RGFW_PREFIX))
 endif
 
 override \
-CFLAGS += -I$(VENDOR_LUA_PREFIX) -I$(VENDOR_RGFW_PREFIX)
-
-# rgfw dependencies
-ifeq ($(OS),Windows_NT)
-	LDLIBS := -lopengl32 -lgdi32
-else
-	OS := $(shell uname -s)
-	ifeq ($(OS),Darwin)
-		LDLIBS := -framework Cocoa
-	else
-		LDLIBS := -lX11 -lGL -lm -lXrandr
-	endif
-endif
+CFLAGS += -I$(VENDOR_LUA_PREFIX)
 
 # targets and object defs
 EH_E := eh
@@ -50,7 +36,7 @@ ifeq ($(OS),Windows_NT)
 endif
 
 EH_T   := libeh.a
-EH_O   := eh.o eh-rgfw.o
+EH_O   := eh.o
 
 LUA_T  := liblua.a
 LUA_O  := lapi.o     lcode.o   lctype.o   ldebug.o   ldo.o      ldump.o    lfunc.o   \
@@ -62,81 +48,32 @@ LUA_O  := lapi.o     lcode.o   lctype.o   ldebug.o   ldo.o      ldump.o    lfunc
                                                                                      \
 	      lauxlib.o
 
-RGFW_C := eh-rgfw.c
-RGFW_H := RGFW.h
-
-ONE_C  := eh-one.c
-
 # fix vendored paths
 LUA_T  := $(addprefix $(VENDOR_LUA_PREFIX),$(LUA_T))
 LUA_O  := $(addprefix $(VENDOR_LUA_PREFIX),$(LUA_O))
-RGFW_H := $(addprefix $(VENDOR_RGFW_PREFIX),$(RGFW_H))
 
-ALL_T  := $(LUA_T) $(EH_T)
 ALL_O  := $(LUA_O) $(EH_O)
-ALL    := $(RGFW_C) $(ONE_C) $(ALL_O) $(ALL_T) $(EH_E)
+ALL_T  := $(LUA_T) $(EH_T)
+ALL    := $(ALL_O) $(ALL_T) $(EH_E)
 
-# recipes
+$(EH_E): $(ALL_T)
+	$(CC) $^ -o $@
+
 $(EH_T): $(EH_O)
 	$(AR) $@ $^
 
 $(LUA_T): $(LUA_O)
 	$(AR) $@ $^
 
-$(RGFW_C): $(RGFW_H)
-ifeq ($(OS),Windows_NT)
-	echo #define RGFW_IMPLEMENTATION > $(RGFW_C)
-	echo #include "RGFW.h" >> $(RGFW_C)
-	echo #undef RGFW_IMPLEMENTATION >> $(RGFW_C)
-else
-	echo "#define RGFW_IMPLEMENTATION" > $(RGFW_C)
-	echo "#include \"RGFW.h\"" >> $(RGFW_C)
-	echo "#undef RGFW_IMPLEMENTATION" >> $(RGFW_C)
-endif
-
-$(ONE_C): $(RGFW_C)
-	$(file >$@,// eh unity file)
-ifeq ($(OS),Windows_NT)
-	$(foreach c,$(patsubst %.o,%.c,$(ALL_O)), \
-		$(info echo #include "$(c)" >> $@)    \
-		$(file >>$@,#include "$(c)")          \
-	)
-else
-	$(foreach c,$(patsubst %.o,%.c,$(ALL_O)),  \
-		$(info echo "#include \"$(c)\" >> $@") \
-		$(file >>$@,#include "$(c)")           \
-	)
-endif
-
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -o $@ -c $<
 
-# phonies
-.PHONY: run eh eh-release eh-devel script script-windows script-posix clean
+.PHONY: eh eh-devel clean
 
-run: eh-devel
-	$(EH_E) | (cls || clear)
-	@echo process finished with exit code:
+eh: eh-devel
 
-eh: eh-release
-
-eh-release: $(ONE_C)
-	$(CC) $(CFLAGS) $< -o $(EH_E) $(LDLIBS)
-
-eh-devel: $(ALL_T)
-	$(CC) $(EH_T) $(LUA_T) -o $(EH_E) $(LDLIBS)
-
-script: $(if $(filter Windows_NT,$(OS)),script-windows,script-posix)
-
-script-windows:
-	echo @rem This is the eh build script for Windows > build.bat
-	echo. >> build.bat
-	make eh -nB --no-print-directory >> build.bat OS=Windows_NT
-
-script-posix:
-	echo #!/bin/bash > build.sh
-	echo >> build.sh
-	make eh -nB --no-print-directory >> build.sh OS=
+eh-devel:
+	$(CC) $()
 
 clean:
 ifeq ($(OS),Windows_NT)
