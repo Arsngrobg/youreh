@@ -50,7 +50,7 @@ LUA_T  := $(addprefix $(VENDOR_LUA_PREFIX),$(LUA_T))
 LUA_O  := $(addprefix $(VENDOR_LUA_PREFIX),$(LUA_O))
 
 ALL_O  := $(LUA_O) $(EH_O)
-ALL_T  := $(LUA_T) $(EH_T)
+ALL_T  := $(EH_T) $(LUA_T)
 ALL    := $(ALL_O) $(ALL_T) $(EH_E)
 
 $(EH_E): $(ALL_T)
