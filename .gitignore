@@ -6,9 +6,3 @@
 *.dylib
 *.sh
 *.bat
-
-!src/build.bat
-!src/build.sh
-
-src/rgfw.c
-src/eh-one.c
