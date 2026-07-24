@@ -38,14 +38,12 @@ EH_T   := libeh.a
 EH_O   := eh.o
 
 LUA_T  := liblua.a
-LUA_O  := lapi.o     lcode.o   lctype.o   ldebug.o   ldo.o      ldump.o    lfunc.o   \
-          lgc.o      llex.o    lmem.o     lobject.o  lopcodes.o lparser.o  lstate.o  \
-		  lstring.o  ltable.o  ltm.o      lundump.o  lvm.o      lzio.o     ltests.o  \
-                                                                                     \
-          lbaselib.o ldblib.o  liolib.o   lmathlib.o loslib.o   ltablib.o  lstrlib.o \
-	      lutf8lib.o loadlib.o lcorolib.o linit.o                                    \
-                                                                                     \
-	      lauxlib.o
+LUA_O  := lapi.o     lcode.o    ldebug.o   ldo.o      ldump.o    lfunc.o  lgc.o     \
+          llex.o     lmem.o     lobject.o  lopcodes.o lparser.o  lstate.o lstring.o \
+		  ltable.o   ltm.o      lundump.o  lvm.o      lzio.o                        \
+                                                                                    \
+          lauxlib.o  lbaselib.o ldblib.o   liolib.o   lmathlib.o loslib.o ltablib.o \
+	      lstrlib.o loadlib.o linit.o
 
 # fix vendored paths
 LUA_T  := $(addprefix $(VENDOR_LUA_PREFIX),$(LUA_T))
@@ -71,8 +69,8 @@ $(LUA_T): $(LUA_O)
 
 eh: eh-devel
 
-eh-devel:
-	$(CC) $()
+eh-devel: $(ALL_T)
+	$(CC) $(ALL_T) -o $(EH_E)
 
 clean:
 ifeq ($(OS),Windows_NT)
